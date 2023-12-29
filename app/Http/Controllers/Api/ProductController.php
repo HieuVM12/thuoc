@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -358,8 +359,12 @@ class ProductController extends Controller
                 'response' => null,
             ], 200);
         }
+        if($request->ck_truoc == 1){
+            $totalPrice = $totalPrice*99.5/100;
+        }
         try {
             $bill = Bill::create([
+                'ma_don_hang' => Str::random(10),
                 'dai_ly_id' => Auth::guard('customer-api')->user()->id,
                 'device' => $request->device,
                 'ghi_chu' => $request->ghi_chu,
@@ -382,8 +387,8 @@ class ProductController extends Controller
                         'so_luong' => $checkPrdInCart->so_luong,
                         'don_gia' => $checkPrdInCart->product->price
                     ]);
+                    $checkPrdInCart->delete();
                 }
-                $checkPrdInCart->delete();
             }
 
             $dai_ly = Customer::findOrFail(Auth::guard('customer-api')->user()->id);
@@ -395,13 +400,25 @@ class ProductController extends Controller
             $dai_ly->update([
                 'coin' => $coin_con_lai,
             ]);
-            return response()->json([
-                'code' => 0,
-                'message' => [],
-                'response' => [
-                    'description' => "Taoj don hang thanh cong"
-                ]
-            ], 200);
+            if($request->ck_truoc==0){
+                return response()->json([
+                    'code' => 0,
+                    'message' => [],
+                    'response' => [
+                        'description' => "Taoj don hang thanh cong"
+                    ]
+                ], 200);
+            }else{
+                return response()->json([
+                    'code' => 0,
+                    'message' => [],
+                    'response' => [
+                        'description' => "Di chuyen toi man hinh thanh toan MegaPay",
+                        'url_payment' =>  "http://18.138.176.213/agency/megapay/va?ma_don_hang=".$bill->ma_don_hang."&total_price=".$bill->total_price."&email=".$bill->email."&sdt=".$bill->sdt,
+                    ]
+                ], 200);
+            }
+
         } catch (\Exception $e) {
             return response()->json([
                 'code' => 1,
@@ -410,6 +427,7 @@ class ProductController extends Controller
             ], 200);
         }
     }
+
     public function search(Request $request)
     {
         $error = [];

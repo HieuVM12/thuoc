@@ -99,5 +99,8 @@ Route::prefix('admin')->middleware('auth','isAdmin')->group(function(){
         Route::get('/delete/{id}','destroy');
         Route::get('/search','search');
     });
+    Route::prefix('bill')->controller(App\Http\Controllers\Admin\BillController::class)->group(function () {
+        Route::get('/','index');
+    });
 });
 

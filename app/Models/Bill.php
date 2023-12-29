@@ -24,6 +24,7 @@ class Bill extends Model
         'email',
         'dia_chi',
         'ma_so_thue',
+        'ma_don_hang',
     ];
     /**
      * Get all of the comments for the Bill
